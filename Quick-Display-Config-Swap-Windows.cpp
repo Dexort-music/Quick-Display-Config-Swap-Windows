@@ -236,12 +236,12 @@ void TestDisplayConfiguration(BOOL showPathInfo, BOOL showModeInfo) {
 	UINT32 numPathArrayElements = 0;
 	UINT32 numModeInfoArrayElements = 0;
 
-	GetDisplayConfigBufferSizes(QDC_ALL_PATHS, &numPathArrayElements, &numModeInfoArrayElements);
+	GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, &numModeInfoArrayElements);
 
 	std::vector<DISPLAYCONFIG_PATH_INFO> pathInfoArray(numPathArrayElements);
 	std::vector<DISPLAYCONFIG_MODE_INFO> modeInfoArray(numModeInfoArrayElements);
 
-	LONG err = QueryDisplayConfig(QDC_ALL_PATHS, &numPathArrayElements, pathInfoArray.data(), &numModeInfoArrayElements, modeInfoArray.data(), nullptr);
+	LONG err = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, pathInfoArray.data(), &numModeInfoArrayElements, modeInfoArray.data(), nullptr);
 	if (err != ERROR_SUCCESS) {
 		std::cerr << "Failed to query display configuration." << std::endl;
 		return;
@@ -271,7 +271,7 @@ void TestDisplayConfiguration(BOOL showPathInfo, BOOL showModeInfo) {
 				<< "\nscaling\t\t\t" << pathInfoArray[i].targetInfo.scaling
 				<< "\nscanLineOrdering\t" << pathInfoArray[i].targetInfo.scanLineOrdering
 				<< "\ntargetAvailable\t\t" << pathInfoArray[i].targetInfo.targetAvailable
-				<< "\nargetModeInfoIdx\t" << pathInfoArray[i].targetInfo.targetModeInfoIdx
+				<< "\ntargetModeInfoIdx\t" << pathInfoArray[i].targetInfo.targetModeInfoIdx
 				<< "\nstatusFlags\t\t" << pathInfoArray[i].targetInfo.statusFlags;
 
 			std::wcout << "\n======================================================================\n";
@@ -282,9 +282,9 @@ void TestDisplayConfiguration(BOOL showPathInfo, BOOL showModeInfo) {
 		for (size_t i = 0; i < numModeInfoArrayElements; i++)
 		{
 			//
-			if (modeInfoArray[i].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET) {
+			/*if (modeInfoArray[i].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET) {
 				continue;
-			}
+			}*/
 			//
 			std::wcout << "\nMODEINFO " << i << " / " << numModeInfoArrayElements
 				<< "\n"
@@ -314,6 +314,64 @@ void TestDisplayConfiguration(BOOL showPathInfo, BOOL showModeInfo) {
 			std::wcout << "\n======================================================================\n";
 		}
 	}
+
+	std::cout << "\napply gathered settings? y - yes:\n";
+	char confirm;
+	std::cin >> confirm;
+
+	if (confirm != 'y') {
+		std::wcout << "\ncanceled.\n";
+		return;
+	}
+
+	// just test (SDC_VALIDATE flag)
+	//err = SetDisplayConfig(numPathArrayElements, pathInfoArray.data(), numModeInfoArrayElements, modeInfoArray.data(), SDC_VALIDATE | SDC_USE_SUPPLIED_DISPLAY_CONFIG);
+
+	// real test. set current config and apply it... omg god please help me
+	err = SetDisplayConfig(
+		numPathArrayElements, 
+		pathInfoArray.data(), 
+		numModeInfoArrayElements, 
+		modeInfoArray.data(), 
+		SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE
+	);
+
+	// tested in manual mode. god it works on my machine thank you!
+
+	std::wcout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+		<< (err == ERROR_SUCCESS ? "ERROR_SUCCESS" : "")
+		<< (err == ERROR_INVALID_PARAMETER ? "ERROR_INVALID_PARAMETER" : "")
+		<< (err == ERROR_NOT_SUPPORTED ? "ERROR_NOT_SUPPORTED" : "")
+		<< (err == ERROR_ACCESS_DENIED ? "ERROR_ACCESS_DENIED" : "")
+		<< (err == ERROR_GEN_FAILURE ? "ERROR_GEN_FAILURE" : "")
+		<< (err == ERROR_BAD_CONFIGURATION ? "ERROR_BAD_CONFIGURATION" : "")
+		<< "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+		;
+
+	//doesn't work for some reason. guess there's no coming back from now on
+	//TODO: fix
+	/*
+	char revert;
+	std::wcout << "revert back? y - yes:\n";
+	std::cin >> revert;
+	
+	if (revert == 'y') {
+
+		std::wcout << "\nreverting...\n";
+		err = SetDisplayConfig(numPathArrayElements, pathInfoArray.data(), numModeInfoArrayElements, modeInfoArray.data(), SDC_APPLY | SDC_USE_DATABASE_CURRENT);
+		std::wcout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+			<< (err == ERROR_SUCCESS ? "ERROR_SUCCESS" : "")
+			<< (err == ERROR_INVALID_PARAMETER ? "ERROR_INVALID_PARAMETER" : "")
+			<< (err == ERROR_NOT_SUPPORTED ? "ERROR_NOT_SUPPORTED" : "")
+			<< (err == ERROR_ACCESS_DENIED ? "ERROR_ACCESS_DENIED" : "")
+			<< (err == ERROR_GEN_FAILURE ? "ERROR_GEN_FAILURE" : "")
+			<< (err == ERROR_BAD_CONFIGURATION ? "ERROR_BAD_CONFIGURATION" : "")
+			<< "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+			;
+	}
+	else {
+		std::wcout << "\ndone.\n";
+	}*/
 }
 
 int main()
@@ -322,6 +380,6 @@ int main()
 	//SerializeDevModeRegistrySettings("profile2.bin");
 	//PrintDisplayInfo(true);
 	std::cout << "\n\n\n";
-	TestDisplayConfiguration(false, true);
+	TestDisplayConfiguration(true, true);
 	//DeSerializeDevModeRegistrySettings("profile1.bin");
 }
