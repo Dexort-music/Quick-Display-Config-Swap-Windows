@@ -232,87 +232,103 @@ void DeSerializeDevModeRegistrySettings(const std::string& filename) {
 	}
 }
 
+void ShowPathInfo(INT32 numPathArrayElements, DISPLAYCONFIG_PATH_INFO* pathInfoArray) {
+	for (size_t i = 0; i < numPathArrayElements; i++)
+	{
+		std::wcout << "\nPATHINFO " << i << " / " << numPathArrayElements
+			<< "\n\nSOURCE"
+			<< "\nadapterId\t\t" << pathInfoArray[i].sourceInfo.adapterId.HighPart << " " << pathInfoArray[i].sourceInfo.adapterId.LowPart
+			<< "\ncloneGroupId\t\t" << pathInfoArray[i].sourceInfo.cloneGroupId
+			<< "\nid\t\t\t" << pathInfoArray[i].sourceInfo.id
+			<< "\nmodeInfoIdx\t\t" << pathInfoArray[i].sourceInfo.modeInfoIdx
+			<< "\nsourceModeInfoIdx\t" << pathInfoArray[i].sourceInfo.sourceModeInfoIdx
+			<< "\nstatusFlags\t\t" << pathInfoArray[i].sourceInfo.statusFlags;
+
+		std::wcout << "\n\nTARGET"
+			<< "\nadapterId_H\t\t" << pathInfoArray[i].targetInfo.adapterId.HighPart
+			<< "\nadapterId_L\t\t" << pathInfoArray[i].targetInfo.adapterId.LowPart
+			<< "\ndesktopModeInfoIdx\t" << pathInfoArray[i].targetInfo.desktopModeInfoIdx
+			<< "\nid\t\t\t" << pathInfoArray[i].targetInfo.id
+			<< "\nmodeInfoIdx\t\t" << pathInfoArray[i].targetInfo.modeInfoIdx
+			<< "\noutputTechnology\t" << pathInfoArray[i].targetInfo.outputTechnology
+			<< "\nrefreshRate\t\t" << pathInfoArray[i].targetInfo.refreshRate.Numerator << " / " << pathInfoArray[i].targetInfo.refreshRate.Denominator
+			<< "\nrotation\t\t" << pathInfoArray[i].targetInfo.rotation
+			<< "\nscaling\t\t\t" << pathInfoArray[i].targetInfo.scaling
+			<< "\nscanLineOrdering\t" << pathInfoArray[i].targetInfo.scanLineOrdering
+			<< "\ntargetAvailable\t\t" << pathInfoArray[i].targetInfo.targetAvailable
+			<< "\ntargetModeInfoIdx\t" << pathInfoArray[i].targetInfo.targetModeInfoIdx
+			<< "\nstatusFlags\t\t" << pathInfoArray[i].targetInfo.statusFlags;
+
+		std::wcout << "\n======================================================================\n";
+	}
+
+}
+
+void ShowModeInfo(INT32 numModeArrayElements, DISPLAYCONFIG_MODE_INFO* modeInfoArray) {
+	for (size_t i = 0; i < numModeArrayElements; i++)
+	{
+		std::wcout << "\nMODEINFO " << i << " / " << numModeArrayElements
+			<< "\n"
+			<< "\nadapterId\t" << modeInfoArray[i].adapterId.HighPart << " " << modeInfoArray[i].adapterId.LowPart
+			<< "\nid\t\t" << modeInfoArray[i].id
+			<< "\ninfoType\t" << modeInfoArray[i].infoType;
+
+		if (modeInfoArray[i].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_SOURCE) {
+			std::wcout << "\n\n\tSOURCEMODE"
+				<< "\nsourceMode.width\t\t" << modeInfoArray[i].sourceMode.width
+				<< "\nsourceMode.height\t\t" << modeInfoArray[i].sourceMode.height
+				<< "\nsourceMode.pixelFormat\t\t" << modeInfoArray[i].sourceMode.pixelFormat
+				<< "\nsourceMode.position.x\t\t" << modeInfoArray[i].sourceMode.position.x
+				<< "\nsourceMode.position.y\t\t" << modeInfoArray[i].sourceMode.position.y
+				;
+		}
+
+		if (modeInfoArray[i].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET) {
+			std::wcout << "\n\n\tTARGETMODE"
+				<< "\ntargetMode.activeSize.cx\t" << modeInfoArray[i].targetMode.targetVideoSignalInfo.activeSize.cx
+				<< "\ntargetMode.activeSize.cy\t" << modeInfoArray[i].targetMode.targetVideoSignalInfo.activeSize.cy
+				<< "\ntargetMode.totalSize.cy\t\t" << modeInfoArray[i].targetMode.targetVideoSignalInfo.totalSize.cx
+				<< "\ntargetMode.totalSize.cy\t\t" << modeInfoArray[i].targetMode.targetVideoSignalInfo.totalSize.cy
+				;
+		}
+
+		std::wcout << "\n======================================================================\n";
+	}
+}
+
+void PrintErrorSetDisplayConfig(LONG err) {
+	std::wcout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+		<< (err == ERROR_SUCCESS ? "ERROR_SUCCESS" : "")
+		<< (err == ERROR_INVALID_PARAMETER ? "ERROR_INVALID_PARAMETER" : "")
+		<< (err == ERROR_NOT_SUPPORTED ? "ERROR_NOT_SUPPORTED" : "")
+		<< (err == ERROR_ACCESS_DENIED ? "ERROR_ACCESS_DENIED" : "")
+		<< (err == ERROR_GEN_FAILURE ? "ERROR_GEN_FAILURE" : "")
+		<< (err == ERROR_BAD_CONFIGURATION ? "ERROR_BAD_CONFIGURATION" : "")
+		<< "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+		;
+}
+
 void TestDisplayConfiguration(BOOL showPathInfo, BOOL showModeInfo) {
 	UINT32 numPathArrayElements = 0;
-	UINT32 numModeInfoArrayElements = 0;
+	UINT32 numModeArrayElements = 0;
 
-	GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, &numModeInfoArrayElements);
+	GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, &numModeArrayElements);
 
 	std::vector<DISPLAYCONFIG_PATH_INFO> pathInfoArray(numPathArrayElements);
-	std::vector<DISPLAYCONFIG_MODE_INFO> modeInfoArray(numModeInfoArrayElements);
+	std::vector<DISPLAYCONFIG_MODE_INFO> modeInfoArray(numModeArrayElements);
 
-	LONG err = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, pathInfoArray.data(), &numModeInfoArrayElements, modeInfoArray.data(), nullptr);
+	LONG err = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, pathInfoArray.data(), &numModeArrayElements, modeInfoArray.data(), nullptr);
 	if (err != ERROR_SUCCESS) {
 		std::cerr << "Failed to query display configuration." << std::endl;
 		return;
 	}
 
 	if (showPathInfo) {
-		for (size_t i = 0; i < numPathArrayElements; i++)
-		{
-			std::wcout << "\nPATHINFO " << i << " / " << numPathArrayElements
-				<< "\n\nSOURCE"
-				<< "\nadapterId\t\t" << pathInfoArray[i].sourceInfo.adapterId.HighPart << " " << pathInfoArray[i].sourceInfo.adapterId.LowPart
-				<< "\ncloneGroupId\t\t" << pathInfoArray[i].sourceInfo.cloneGroupId
-				<< "\nid\t\t\t" << pathInfoArray[i].sourceInfo.id
-				<< "\nmodeInfoIdx\t\t" << pathInfoArray[i].sourceInfo.modeInfoIdx
-				<< "\nsourceModeInfoIdx\t" << pathInfoArray[i].sourceInfo.sourceModeInfoIdx
-				<< "\nstatusFlags\t\t" << pathInfoArray[i].sourceInfo.statusFlags;
-
-			std::wcout << "\n\nTARGET"
-				<< "\nadapterId_H\t\t" << pathInfoArray[i].targetInfo.adapterId.HighPart
-				<< "\nadapterId_L\t\t" << pathInfoArray[i].targetInfo.adapterId.LowPart
-				<< "\ndesktopModeInfoIdx\t" << pathInfoArray[i].targetInfo.desktopModeInfoIdx
-				<< "\nid\t\t\t" << pathInfoArray[i].targetInfo.id
-				<< "\nmodeInfoIdx\t\t" << pathInfoArray[i].targetInfo.modeInfoIdx
-				<< "\noutputTechnology\t" << pathInfoArray[i].targetInfo.outputTechnology
-				<< "\nrefreshRate\t\t" << pathInfoArray[i].targetInfo.refreshRate.Numerator << " / " << pathInfoArray[i].targetInfo.refreshRate.Denominator
-				<< "\nrotation\t\t" << pathInfoArray[i].targetInfo.rotation
-				<< "\nscaling\t\t\t" << pathInfoArray[i].targetInfo.scaling
-				<< "\nscanLineOrdering\t" << pathInfoArray[i].targetInfo.scanLineOrdering
-				<< "\ntargetAvailable\t\t" << pathInfoArray[i].targetInfo.targetAvailable
-				<< "\ntargetModeInfoIdx\t" << pathInfoArray[i].targetInfo.targetModeInfoIdx
-				<< "\nstatusFlags\t\t" << pathInfoArray[i].targetInfo.statusFlags;
-
-			std::wcout << "\n======================================================================\n";
-		}
+		ShowPathInfo(numPathArrayElements, pathInfoArray.data());
 	}
 
 	if (showModeInfo) {
-		for (size_t i = 0; i < numModeInfoArrayElements; i++)
-		{
-			//
-			/*if (modeInfoArray[i].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET) {
-				continue;
-			}*/
-			//
-			std::wcout << "\nMODEINFO " << i << " / " << numModeInfoArrayElements
-				<< "\n"
-				<< "\nadapterId\t" << modeInfoArray[i].adapterId.HighPart << " " << modeInfoArray[i].adapterId.LowPart
-				<< "\nid\t\t" << modeInfoArray[i].id
-				<< "\ninfoType\t" << modeInfoArray[i].infoType;
-
-			if (modeInfoArray[i].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_SOURCE) {
-				std::wcout << "\n\n\tSOURCEMODE"
-					<< "\nsourceMode.width\t\t" << modeInfoArray[i].sourceMode.width
-					<< "\nsourceMode.height\t\t" << modeInfoArray[i].sourceMode.height
-					<< "\nsourceMode.pixelFormat\t\t" << modeInfoArray[i].sourceMode.pixelFormat
-					<< "\nsourceMode.position.x\t\t" << modeInfoArray[i].sourceMode.position.x
-					<< "\nsourceMode.position.y\t\t" << modeInfoArray[i].sourceMode.position.y
-					;
-			}
-
-			if (modeInfoArray[i].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET) {
-				std::wcout << "\n\n\tTARGETMODE"
-					<< "\ntargetMode.activeSize.cx\t" << modeInfoArray[i].targetMode.targetVideoSignalInfo.activeSize.cx
-					<< "\ntargetMode.activeSize.cy\t" << modeInfoArray[i].targetMode.targetVideoSignalInfo.activeSize.cy
-					<< "\ntargetMode.totalSize.cy\t\t" << modeInfoArray[i].targetMode.targetVideoSignalInfo.totalSize.cx
-					<< "\ntargetMode.totalSize.cy\t\t" << modeInfoArray[i].targetMode.targetVideoSignalInfo.totalSize.cy
-					;
-			}
-
-			std::wcout << "\n======================================================================\n";
-		}
+		ShowModeInfo(numModeArrayElements, modeInfoArray.data());
 	}
 
 	std::cout << "\napply gathered settings? y - yes:\n";
@@ -325,28 +341,20 @@ void TestDisplayConfiguration(BOOL showPathInfo, BOOL showModeInfo) {
 	}
 
 	// just test (SDC_VALIDATE flag)
-	//err = SetDisplayConfig(numPathArrayElements, pathInfoArray.data(), numModeInfoArrayElements, modeInfoArray.data(), SDC_VALIDATE | SDC_USE_SUPPLIED_DISPLAY_CONFIG);
+	//err = SetDisplayConfig(numPathArrayElements, pathInfoArray.data(), numModeArrayElements, modeInfoArray.data(), SDC_VALIDATE | SDC_USE_SUPPLIED_DISPLAY_CONFIG);
 
 	// real test. set current config and apply it... omg god please help me
 	err = SetDisplayConfig(
 		numPathArrayElements, 
 		pathInfoArray.data(), 
-		numModeInfoArrayElements, 
+		numModeArrayElements, 
 		modeInfoArray.data(), 
 		SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE
 	);
 
 	// tested in manual mode. god it works on my machine thank you!
 
-	std::wcout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-		<< (err == ERROR_SUCCESS ? "ERROR_SUCCESS" : "")
-		<< (err == ERROR_INVALID_PARAMETER ? "ERROR_INVALID_PARAMETER" : "")
-		<< (err == ERROR_NOT_SUPPORTED ? "ERROR_NOT_SUPPORTED" : "")
-		<< (err == ERROR_ACCESS_DENIED ? "ERROR_ACCESS_DENIED" : "")
-		<< (err == ERROR_GEN_FAILURE ? "ERROR_GEN_FAILURE" : "")
-		<< (err == ERROR_BAD_CONFIGURATION ? "ERROR_BAD_CONFIGURATION" : "")
-		<< "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-		;
+	PrintErrorSetDisplayConfig(err);
 
 	//doesn't work for some reason. guess there's no coming back from now on
 	//TODO: fix
@@ -358,7 +366,7 @@ void TestDisplayConfiguration(BOOL showPathInfo, BOOL showModeInfo) {
 	if (revert == 'y') {
 
 		std::wcout << "\nreverting...\n";
-		err = SetDisplayConfig(numPathArrayElements, pathInfoArray.data(), numModeInfoArrayElements, modeInfoArray.data(), SDC_APPLY | SDC_USE_DATABASE_CURRENT);
+		err = SetDisplayConfig(numPathArrayElements, pathInfoArray.data(), numModeArrayElements, modeInfoArray.data(), SDC_APPLY | SDC_USE_DATABASE_CURRENT);
 		std::wcout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
 			<< (err == ERROR_SUCCESS ? "ERROR_SUCCESS" : "")
 			<< (err == ERROR_INVALID_PARAMETER ? "ERROR_INVALID_PARAMETER" : "")
@@ -374,12 +382,211 @@ void TestDisplayConfiguration(BOOL showPathInfo, BOOL showModeInfo) {
 	}*/
 }
 
+LONG GetActiveDisplayConfig(UINT32& numPathElements, DISPLAYCONFIG_PATH_INFO* pathInfo, UINT32& numModeElements, DISPLAYCONFIG_MODE_INFO* modeInfo) {
+	UINT32 numPathArrayElements = 0;
+	UINT32 numModeArrayElements = 0;
+
+	GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, &numModeArrayElements);
+
+	//DISPLAYCONFIG_PATH_INFO* pathInfoArray = new DISPLAYCONFIG_PATH_INFO[numPathArrayElements];
+	//DISPLAYCONFIG_MODE_INFO* modeInfoArray = new DISPLAYCONFIG_MODE_INFO[numModeArrayElements];
+	std::vector<DISPLAYCONFIG_PATH_INFO> pathInfoArray(numPathArrayElements);
+	std::vector<DISPLAYCONFIG_MODE_INFO> modeInfoArray(numModeArrayElements);
+
+	LONG err = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, pathInfoArray.data(), &numModeArrayElements, modeInfoArray.data(), nullptr);
+	if (err != ERROR_SUCCESS) {
+		std::cerr << "Failed to query display configuration." << std::endl;
+		return err;
+	}
+
+	pathInfo = pathInfoArray.data();
+	modeInfo = modeInfoArray.data();
+	numPathElements = numPathArrayElements;
+	numModeElements = numModeArrayElements;
+	return err;
+}
+
+struct DisplayConfig {
+	UINT32 numPathArrayElements = 0;
+	UINT32 numModeArrayElements = 0;
+	std::vector<DISPLAYCONFIG_PATH_INFO> pathInfoArray;
+	std::vector<DISPLAYCONFIG_MODE_INFO> modeInfoArray;
+};
+
+std::string GetExecutablePath() {
+	char buffer[MAX_PATH];
+	// Get the full path of the executable
+	GetModuleFileNameA(NULL, buffer, MAX_PATH);
+	std::string executablePath(buffer);
+	// Return the directory of the executable
+	return executablePath.substr(0, executablePath.find_last_of("\\/"));
+}
+
+void Serialize(DisplayConfig& dc, const std::string& filePath) {
+	remove(filePath.c_str());
+
+	std::ofstream outFile(filePath, std::ios::binary | std::ios::app);
+	if (!outFile) {
+		std::cerr << "Can't open file for writing." << std::endl;
+		return;
+	}
+
+	outFile.write(reinterpret_cast<const char*>(&dc.numPathArrayElements), sizeof(dc.numPathArrayElements));
+	outFile.write(reinterpret_cast<const char*>(&dc.numModeArrayElements), sizeof(dc.numModeArrayElements));
+	
+	for (const DISPLAYCONFIG_PATH_INFO& path : dc.pathInfoArray) {
+		outFile.write(reinterpret_cast<const char*>(&path), sizeof(path));
+	}
+
+	for (const DISPLAYCONFIG_MODE_INFO& mode : dc.modeInfoArray) {
+		outFile.write(reinterpret_cast<const char*>(&mode), sizeof(mode));
+	}
+	
+	outFile.close();
+	std::wcout << "file written...\n";
+}
+
+DisplayConfig DeserializeDC(const std::string& filePath) {
+	DisplayConfig dc;
+
+	std::ifstream inFile(filePath, std::ios::binary);
+	if (!inFile) {
+		std::cerr << "Can't open file for reading." << std::endl;
+		return dc;
+	}
+
+	if (!inFile.read(reinterpret_cast<char*>(&dc.numPathArrayElements), sizeof(dc.numPathArrayElements))) {
+		std::cerr << "numPAE???\n";
+		return dc;
+	}
+	if (!inFile.read(reinterpret_cast<char*>(&dc.numModeArrayElements), sizeof(dc.numModeArrayElements))) {
+		std::cerr << "numMIAE???\n";
+		return dc;
+	}
+
+	for (size_t i = 0; i < dc.numPathArrayElements; i++)
+	{
+		DISPLAYCONFIG_PATH_INFO path;
+		if (!inFile.read(reinterpret_cast<char*>(&path), sizeof(path))) {
+			std::cerr << "path wrong\n";
+			return dc;
+		}
+		dc.pathInfoArray.push_back(path);
+	}
+
+	for (size_t i = 0; i < dc.numModeArrayElements; i++)
+	{
+		DISPLAYCONFIG_MODE_INFO mode;
+		if (!inFile.read(reinterpret_cast<char*>(&mode), sizeof(mode))) {
+			std::cerr << "mode wrong\n";
+			return dc;
+		}
+		dc.modeInfoArray.push_back(mode);
+	}
+
+	inFile.close();
+
+	return dc;
+}
+
+LONG SerializeActiveDisplayConfig(const std::string& filePath) {
+	UINT32 numPathArrayElements = 0;
+	UINT32 numModeArrayElements = 0;
+
+	GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, &numModeArrayElements);
+
+	std::vector<DISPLAYCONFIG_PATH_INFO> pathInfoArray(numPathArrayElements);
+	std::vector<DISPLAYCONFIG_MODE_INFO> modeInfoArray(numModeArrayElements);
+
+	LONG err = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &numPathArrayElements, pathInfoArray.data(), &numModeArrayElements, modeInfoArray.data(), nullptr);
+	if (err != ERROR_SUCCESS) {
+		std::cerr << "Failed to query display configuration." << std::endl;
+		return err;
+	}
+
+	DisplayConfig dc{ numPathArrayElements, numModeArrayElements, pathInfoArray, modeInfoArray };
+	
+	//ShowPathInfo(dc.numPathArrayElements, dc.pathInfoArray.data());
+	//ShowModeInfo(dc.numModeArrayElements, dc.modeInfoArray.data());
+
+	Serialize(dc, filePath);
+	
+	return err;
+}
+
+#define DC_SHOW  0x00000001
+#define DC_TEST  0x00000002
+#define DC_APPLY 0x00000004
+
+LONG DeserializeActiveDisplayConfig(const std::string& filePath, DWORD flags) {
+	DisplayConfig dcOut = DeserializeDC(filePath);
+	LONG err = ERROR_SUCCESS;
+
+	if (flags & DC_SHOW) {
+		ShowPathInfo(dcOut.numPathArrayElements, dcOut.pathInfoArray.data());
+		ShowModeInfo(dcOut.numModeArrayElements, dcOut.modeInfoArray.data());
+	}
+	
+	if (flags & DC_TEST) {
+		std::wcout << "\n\tTESTING...\n";
+		err = SetDisplayConfig(
+			dcOut.numPathArrayElements,
+			dcOut.pathInfoArray.data(),
+			dcOut.numModeArrayElements,
+			dcOut.modeInfoArray.data(),
+			SDC_VALIDATE | SDC_USE_SUPPLIED_DISPLAY_CONFIG
+		);
+		PrintErrorSetDisplayConfig(err);
+	}
+	
+	if (flags & DC_APPLY) {
+		std::wcout << "\n\tAPPLYING...\n";
+		err = SetDisplayConfig(
+			dcOut.numPathArrayElements,
+			dcOut.pathInfoArray.data(),
+			dcOut.numModeArrayElements,
+			dcOut.modeInfoArray.data(),
+			SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_SAVE_TO_DATABASE
+		);
+		PrintErrorSetDisplayConfig(err);
+	}
+
+	return err;
+}
+
 int main()
 {
 	//PrintDisplayInfo(true);
 	//SerializeDevModeRegistrySettings("profile2.bin");
 	//PrintDisplayInfo(true);
-	std::cout << "\n\n\n";
-	TestDisplayConfiguration(true, true);
-	//DeSerializeDevModeRegistrySettings("profile1.bin");
+	//std::cout << "\n\n\n";
+	//TestDisplayConfiguration(true, true);
+	
+	std::string exePath = GetExecutablePath();
+	std::string configsFolder = "\\configs\\";
+	std::string fileName = "3.bin";
+
+	std::string filePath = exePath + configsFolder + fileName;
+	
+	std::wcout << filePath.c_str() << std::endl;
+	
+	//SerializeActiveDisplayConfig(filePath);
+	
+	// quick test =)
+	// this works =)
+	int res;
+	do {
+		std::wcout << "what to do?\n1/2/3/other - exit\n";
+		std::cin >> res;
+		switch (res)
+		{
+		case 1: filePath = exePath + configsFolder + "1.bin"; DeserializeActiveDisplayConfig(filePath, DC_SHOW | DC_TEST | DC_APPLY); break;
+		case 2: filePath = exePath + configsFolder + "2.bin"; DeserializeActiveDisplayConfig(filePath, DC_SHOW | DC_TEST | DC_APPLY); break;
+		case 3: filePath = exePath + configsFolder + "3.bin"; DeserializeActiveDisplayConfig(filePath, DC_SHOW | DC_TEST | DC_APPLY); break;
+		default:
+			break;
+		}
+	} while (res >= 1 && res <= 3);
+
+	//DeserializeActiveDisplayConfig(filePath, DC_SHOW | DC_TEST );
 }
