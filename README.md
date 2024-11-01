@@ -11,21 +11,20 @@ This program will let you switch between your multi-monitor setup configs with s
 ![image](https://github.com/user-attachments/assets/ad88c9e2-53ed-486c-8586-a8b5b7118ac3)
 
 <h2>[DONE]</h2>
-<ul>
-  <li>main functions</li>
-  <li>serialization and deserialization of configs</li>
-  <li>simple test ui</li>
-  <li>tested - concept works flawlessly on my machine, if all monitors are connected</li>
-</ul>
+
+- [x] main functions
+- [x] serialization and deserialization of configs
+- [x] simple test ui
+- [x] tested - concept works flawlessly on my machine, if all monitors are connected
+- [x] code cleanup (tidy-up the structure a bit, remove unused or test functions)
+- [x] working from tray
+- [x] rmb context menu ui
 
 
 <h2>[TODO]</h2>
-<ul>
-  <li>code cleanup (tidy-up the structure a bit, remove unused or test functions)</li>
-  <li>console ui (creating/deleting/applying configs)</li>
-  <li>replace default Win+P behaviour (if possible)</li>
-  <li>working from tray</li>
-  <li>rmb context menu ui</li>
-  <li>testing to break the system (monitors connecting/disconnecting, changing monitor resolutions/scaling/rotation on the fly and so on)</li>
-  <li>testing on as many machines (do it at your own risk)</li>
-</ul>
+
+- [ ] console ui (creating/deleting/applying configs)
+- [ ] ~~replace default Win+P behaviour (if possible)~~ make custom Alt+Win+P keyboard shortcut for fast swapping
+- [ ] testing to break the system (monitors connecting/disconnecting, changing monitor resolutions/scaling/rotation on the fly and so on)
+- [ ] testing on as many machines (do it at your own risk)
+
