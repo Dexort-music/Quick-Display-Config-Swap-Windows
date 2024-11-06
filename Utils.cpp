@@ -6,6 +6,6 @@ std::string GetExecutablePath() {
 	GetModuleFileNameA(NULL, buffer, MAX_PATH);
 	std::string executablePath(buffer);
 	// Return the directory of the executable
-	// test comment
+
 	return executablePath.substr(0, executablePath.find_last_of("\\/"));
 }
