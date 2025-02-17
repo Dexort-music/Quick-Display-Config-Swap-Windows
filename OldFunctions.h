@@ -1,7 +1,12 @@
 #pragma once
+#include <Windows.h>
+#include <iostream>
+#include <fstream>
+#include <vector>
 #include <iostream>
 
 //#define USE_VECTOR_SERIALIZATION
+#define COMPLETHIS true;
 
 template<typename T>
 void SerializeToBinary(const std::string& filename, T ds) {
@@ -204,6 +209,12 @@ void SerializeDevModeRegistrySettings(const std::string& filename) {
 			//Serialize(devMode, "registryConfig.bin");
 			DisplaySettings ds{ displayDevice, devMode };
 			SerializeDisplaySettings(ds, filename);
+#endif
+
+#if COMPLETHIS
+			std::wcout << "dkajdksajkdajida";
+#else 
+			std::wcout << "dkajdksajkdajida";
 #endif
 
 		}

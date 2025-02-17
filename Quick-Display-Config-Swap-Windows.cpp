@@ -31,6 +31,8 @@ void InitTrayMenu() {
     AppendMenu(hTrayMenu, MF_STRING, 1, L"Setup1");
     AppendMenu(hTrayMenu, MF_STRING, 2, L"Setup2");
     AppendMenu(hTrayMenu, MF_STRING, 3, L"Setup3");
+    AppendMenu(hTrayMenu, MF_STRING, 4, L"Serialize1");
+    AppendMenu(hTrayMenu, MF_STRING, 5, L"Serialize2");
     AppendMenu(hTrayMenu, MF_SEPARATOR, 0, NULL);
     AppendMenu(hTrayMenu, MF_STRING, ID_TRAY_EXIT, L"Exit");
 }
@@ -65,6 +67,14 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             fpath = GetExecutablePath() + "/configs/3.bin";
             DeserializeAndApplyDisplayConfig(fpath, DC_APPLY);
             //MessageBox(NULL, L"Hello from the tray!", L"Tray Message", MB_OK | MB_ICONINFORMATION);
+            break;
+        case 4:
+            fpath = GetExecutablePath() + "/configs/4.bin";
+            SerializeActiveDisplayConfig(fpath);
+            break;
+        case 5:
+            fpath = GetExecutablePath() + "/configs/5.bin";
+            SerializeActiveDisplayConfig(fpath);
             break;
         case ID_TRAY_EXIT:
             Shell_NotifyIcon(NIM_DELETE, &nid); // Remove tray icon
