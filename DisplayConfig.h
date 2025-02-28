@@ -23,10 +23,10 @@ LONG GetActiveDisplayConfig(
 	DISPLAYCONFIG_MODE_INFO* modeInfo
 );
 
-void Serialize(DisplayConfig& dc, const std::string& filePath);
+void Serialize(DisplayConfig& dc, const std::wstring& filePath);
 
-DisplayConfig Deserialize(const std::string& filePath);
+DisplayConfig Deserialize(const std::wstring& filePath);
 
-LONG SerializeActiveDisplayConfig(const std::string& filePath);
+LONG SerializeActiveDisplayConfig(const std::wstring& filePath);
 
-LONG DeserializeAndApplyDisplayConfig(const std::string& filePath, DWORD flags);
+LONG DeserializeAndApplyDisplayConfig(const std::wstring& filePath, DWORD flags);

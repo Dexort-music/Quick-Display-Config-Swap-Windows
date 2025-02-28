@@ -1,11 +1,11 @@
 #include "Utils.h"
 
-std::string GetExecutablePath() {
-	char buffer[MAX_PATH];
+std::wstring GetExecutablePath() {
+	wchar_t buffer[MAX_PATH];
 	// Get the full path of the executable
-	GetModuleFileNameA(NULL, buffer, MAX_PATH);
-	std::string executablePath(buffer);
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	std::wstring executablePath(buffer);
 	// Return the directory of the executable
 
-	return executablePath.substr(0, executablePath.find_last_of("\\/"));
+	return executablePath.substr(0, executablePath.find_last_of(L"\\/"));
 }

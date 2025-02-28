@@ -24,8 +24,8 @@ LONG GetActiveDisplayConfig(UINT32& numPathElements, DISPLAYCONFIG_PATH_INFO* pa
 	return err;
 }
 
-void Serialize(DisplayConfig& dc, const std::string& filePath) {
-	remove(filePath.c_str());
+void Serialize(DisplayConfig& dc, const std::wstring& filePath) {
+	DeleteFile(filePath.c_str());
 
 	std::ofstream outFile(filePath, std::ios::binary | std::ios::app);
 	if (!outFile) {
@@ -48,7 +48,7 @@ void Serialize(DisplayConfig& dc, const std::string& filePath) {
 	std::wcout << "file written...\n";
 }
 
-DisplayConfig Deserialize(const std::string& filePath) {
+DisplayConfig Deserialize(const std::wstring& filePath) {
 	DisplayConfig dc;
 
 	std::ifstream inFile(filePath, std::ios::binary);
@@ -91,7 +91,7 @@ DisplayConfig Deserialize(const std::string& filePath) {
 	return dc;
 }
 
-LONG SerializeActiveDisplayConfig(const std::string& filePath) {
+LONG SerializeActiveDisplayConfig(const std::wstring& filePath) {
 	UINT32 numPathArrayElements = 0;
 	UINT32 numModeArrayElements = 0;
 
@@ -116,7 +116,7 @@ LONG SerializeActiveDisplayConfig(const std::string& filePath) {
 	return err;
 }
 
-LONG DeserializeAndApplyDisplayConfig(const std::string& filePath, DWORD flags) {
+LONG DeserializeAndApplyDisplayConfig(const std::wstring& filePath, DWORD flags) {
 	DisplayConfig dcOut = Deserialize(filePath);
 	LONG err = ERROR_SUCCESS;
 

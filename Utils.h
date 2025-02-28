@@ -2,4 +2,4 @@
 #include <iostream>
 #include <Windows.h>
 
-std::string GetExecutablePath();
+std::wstring GetExecutablePath();
