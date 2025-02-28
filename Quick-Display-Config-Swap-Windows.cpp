@@ -186,12 +186,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     break;
                 }
 
-                //DeserializeAndApplyDisplayConfig(fpath, DC_APPLY);
-                MessageBoxW(hWnd,
+                DeserializeAndApplyDisplayConfig(fpath, DC_APPLY);
+                /*MessageBoxW(hWnd,
                     L"Файл Конфигурации УСПЕШНО ПРИМЕНЕН",
                     L"Ошибка",
                     MB_ICONERROR | MB_OK
-                );
+                );*/
             }
             break;
         }
