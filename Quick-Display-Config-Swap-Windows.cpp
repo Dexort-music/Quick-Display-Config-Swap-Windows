@@ -3,11 +3,11 @@
 #include <fstream>
 #include <vector>
 #include <cstdio>
-#include "Utils.h"
-#include "DisplayConfig.h"
 #include <shellapi.h>
 #include <commdlg.h>
-#include <shellapi.h>
+
+#include "Utils.h"
+#include "DisplayConfig.h"
 
 #define WM_TRAYICON (WM_USER + 1)
 #define ID_TRAY_EXIT 1002
